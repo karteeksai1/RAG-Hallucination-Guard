@@ -7,6 +7,9 @@ import string
 import sys
 import time
 from typing import Any, Dict, List
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from tqdm import tqdm
 from generator_groq import generate_answer
 from guard_laya import check_guard
