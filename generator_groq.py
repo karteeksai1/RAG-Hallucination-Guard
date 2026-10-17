@@ -19,7 +19,12 @@ def _get_client():
     return _client
 
 
-def generate_answer(question: str, passages: list[str], model: str = None) -> str:
+def generate_answer(
+    question: str,
+    passages: list[str],
+    model: str = None,
+    prompt_variant: str = "strict"
+) -> str:
     client = _get_client()
     selected_model = model or _default_model
 
@@ -27,12 +32,18 @@ def generate_answer(question: str, passages: list[str], model: str = None) -> st
     for idx, passage in enumerate(passages, 1):
         formatted_context += f"Passage [{idx}]:\n{passage.strip()}\n\n"
 
-    system_prompt = (
-        "You are a strictly factual assistant. Answer the user's question using ONLY the provided "
-        "context passages. If the answer cannot be determined directly from the context, state that "
-        "you do not know or that the context does not provide this information. Do not speculate, "
-        "extrapolate, or use external knowledge."
-    )
+    if prompt_variant == "plain":
+        system_prompt = (
+            "You are a helpful assistant. Answer the user's question based on the provided "
+            "context passages. Provide a direct, confident, and complete answer."
+        )
+    else:
+        system_prompt = (
+            "You are a strictly factual assistant. Answer the user's question using ONLY the provided "
+            "context passages. If the answer cannot be determined directly from the context, state that "
+            "you do not know or that the context does not provide this information. Do not speculate, "
+            "extrapolate, or use external knowledge."
+        )
 
     user_prompt = f"Context:\n{formatted_context}\nQuestion: {question.strip()}\n\nAnswer:"
 
