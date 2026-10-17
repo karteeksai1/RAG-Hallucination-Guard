@@ -342,12 +342,27 @@ def main():
     parser = argparse.ArgumentParser(description="Full RAG Hallucination Guard Evaluation")
     parser.add_argument("--questions-file", default="eval/questions.jsonl")
     parser.add_argument("--sample-size", type=int, default=30)
+    parser.add_argument("--benchmark-only", action="store_true")
     args = parser.parse_args()
 
-    tuning_items, held_out_items = build_split_sets(args.questions_file, sample_size=args.sample_size)
-    tuning_records = run_tuning_phase(tuning_items)
-    calibrated_thresholds = sweep_thresholds(tuning_records)
-    run_benchmark_on_held_out(held_out_items, calibrated_thresholds)
+    if args.benchmark_only and os.path.exists("eval/held_out_set.jsonl") and os.path.exists("eval/calibrated_thresholds.json"):
+        with open("eval/calibrated_thresholds.json", "r", encoding="utf-8") as f:
+            calibrated_thresholds = json.load(f)
+        held_out_items = []
+        with open("eval/held_out_set.jsonl", "r", encoding="utf-8") as f:
+            for line in f:
+                held_out_items.append(json.loads(line))
+        if args.sample_size and len(held_out_items) > args.sample_size:
+            half = args.sample_size // 2
+            ans = [it for it in held_out_items if it["is_answerable"]][:half]
+            unans = [it for it in held_out_items if not it["is_answerable"]][:half]
+            held_out_items = ans + unans
+        run_benchmark_on_held_out(held_out_items, calibrated_thresholds)
+    else:
+        tuning_items, held_out_items = build_split_sets(args.questions_file, sample_size=args.sample_size)
+        tuning_records = run_tuning_phase(tuning_items)
+        calibrated_thresholds = sweep_thresholds(tuning_records)
+        run_benchmark_on_held_out(held_out_items, calibrated_thresholds)
     print("\nEvaluation completed successfully. All artifacts saved in eval/ directory.")
 
 

@@ -4,3 +4,6 @@ pinecone
 python-dotenv
 tqdm
 groq
+streamlit
+pandas
+plotly
