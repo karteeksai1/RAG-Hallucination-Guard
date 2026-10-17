@@ -1,0 +1,9 @@
+{
+  "threshold": 0.3,
+  "deliver_threshold": 0.3,
+  "retry_threshold": 0.3,
+  "context_sufficient_threshold": 0.5,
+  "unanswerable_refused_pct": 80.0,
+  "answerable_delivered_pct": 73.33,
+  "composite_score": 76.66
+}

@@ -1,0 +1,128 @@
+[
+  {
+    "threshold": 0.3,
+    "deliver_threshold": 0.3,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 73.33,
+    "composite_score": 76.66
+  },
+  {
+    "threshold": 0.35,
+    "deliver_threshold": 0.35,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 73.33,
+    "composite_score": 76.66
+  },
+  {
+    "threshold": 0.4,
+    "deliver_threshold": 0.4,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 73.33,
+    "composite_score": 76.66
+  },
+  {
+    "threshold": 0.45,
+    "deliver_threshold": 0.45,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 73.33,
+    "composite_score": 76.66
+  },
+  {
+    "threshold": 0.5,
+    "deliver_threshold": 0.5,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 66.67,
+    "composite_score": 73.34
+  },
+  {
+    "threshold": 0.55,
+    "deliver_threshold": 0.55,
+    "retry_threshold": 0.3,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 53.33,
+    "composite_score": 66.66
+  },
+  {
+    "threshold": 0.6,
+    "deliver_threshold": 0.6,
+    "retry_threshold": 0.35,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 46.67,
+    "composite_score": 63.34
+  },
+  {
+    "threshold": 0.65,
+    "deliver_threshold": 0.65,
+    "retry_threshold": 0.4,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 80.0,
+    "answerable_delivered_pct": 46.67,
+    "composite_score": 63.34
+  },
+  {
+    "threshold": 0.7,
+    "deliver_threshold": 0.7,
+    "retry_threshold": 0.45,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 86.67,
+    "answerable_delivered_pct": 33.33,
+    "composite_score": 60.0
+  },
+  {
+    "threshold": 0.75,
+    "deliver_threshold": 0.75,
+    "retry_threshold": 0.5,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 93.33,
+    "answerable_delivered_pct": 20.0,
+    "composite_score": 56.66
+  },
+  {
+    "threshold": 0.8,
+    "deliver_threshold": 0.8,
+    "retry_threshold": 0.55,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 93.33,
+    "answerable_delivered_pct": 20.0,
+    "composite_score": 56.66
+  },
+  {
+    "threshold": 0.85,
+    "deliver_threshold": 0.85,
+    "retry_threshold": 0.6,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 93.33,
+    "answerable_delivered_pct": 13.33,
+    "composite_score": 53.33
+  },
+  {
+    "threshold": 0.9,
+    "deliver_threshold": 0.9,
+    "retry_threshold": 0.65,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 93.33,
+    "answerable_delivered_pct": 13.33,
+    "composite_score": 53.33
+  },
+  {
+    "threshold": 0.95,
+    "deliver_threshold": 0.95,
+    "retry_threshold": 0.7,
+    "context_sufficient_threshold": 0.5,
+    "unanswerable_refused_pct": 93.33,
+    "answerable_delivered_pct": 6.67,
+    "composite_score": 50.0
+  }
+]
