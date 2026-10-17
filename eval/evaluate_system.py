@@ -219,59 +219,111 @@ def run_benchmark_on_held_out(held_out_items: List[Dict[str, Any]], thresholds: 
     ]
     prompt_variants = ["strict", "plain"]
 
-    benchmark_records = {}
-    summary_rows = []
+    benchmark_records = {f"{cfg['name']}_{p_var}": {"config": cfg["name"], "prompt_variant": p_var, "details": [], "wrong_answers_delivered": 0, "correct_answers_wrongly_refused": 0, "latencies": []} for p_var in prompt_variants for cfg in configs}
 
-    for p_var in prompt_variants:
-        for cfg in configs:
-            run_key = f"{cfg['name']}_{p_var}"
-            print(f"\nEvaluating: Configuration='{cfg['name']}', Prompt Variant='{p_var}'")
+    for item in tqdm(held_out_items, desc="Evaluating held-out items"):
+        q = item["question"]
+        is_ans = item["is_answerable"]
+        gold_answers = item["gold_answers"]
 
-            details = []
-            wrong_answers_delivered = 0
-            correct_answers_wrongly_refused = 0
-            total_latencies = []
+        t_ret = time.perf_counter()
+        passages = retrieve(q, k=4)
+        ret_time = time.perf_counter() - t_ret
 
-            for item in tqdm(held_out_items, desc=f"{run_key}"):
-                q = item["question"]
-                is_ans = item["is_answerable"]
-                gold_answers = item["gold_answers"]
+        for p_var in prompt_variants:
+            t_gen = time.perf_counter()
+            drafted_answer = generate_answer(q, passages, prompt_variant=p_var)
+            gen_time = time.perf_counter() - t_gen
 
-                result = run_rag_pipeline(
-                    question=q,
-                    use_guard=cfg["use_guard"],
-                    guard_type=cfg["guard_type"],
-                    prompt_variant=p_var,
-                    deliver_threshold=thresholds["deliver_threshold"],
-                    retry_threshold=thresholds["retry_threshold"],
-                    context_sufficient_threshold=thresholds["context_sufficient_threshold"]
-                )
+            for cfg in configs:
+                run_key = f"{cfg['name']}_{p_var}"
+                t_guard = time.perf_counter()
+
+                if not cfg["use_guard"]:
+                    result = {
+                        "answer": drafted_answer,
+                        "action": "baseline_delivered",
+                        "scores": None,
+                        "passages": passages,
+                        "time_taken": round(ret_time + gen_time, 4)
+                    }
+                else:
+                    guard_fn = check_guard if cfg["guard_type"] == "laya" else check_llm_judge
+                    scores = guard_fn(q, passages, drafted_answer)
+                    p_sup = scores["p_supported"]
+                    p_suf = scores["p_context_sufficient"]
+
+                    if p_suf < thresholds["context_sufficient_threshold"]:
+                        result = {
+                            "answer": STANDARD_REFUSAL_MESSAGE,
+                            "action": "refused_insufficient_context",
+                            "scores": scores,
+                            "passages": passages,
+                            "time_taken": round(ret_time + gen_time + (time.perf_counter() - t_guard), 4)
+                        }
+                    elif p_sup >= thresholds["deliver_threshold"]:
+                        result = {
+                            "answer": drafted_answer,
+                            "action": "delivered",
+                            "scores": scores,
+                            "passages": passages,
+                            "time_taken": round(ret_time + gen_time + (time.perf_counter() - t_guard), 4)
+                        }
+                    elif thresholds["retry_threshold"] <= p_sup < thresholds["deliver_threshold"]:
+                        passages_retry = retrieve(q, k=8)
+                        draft_retry = generate_answer(q, passages_retry, prompt_variant=p_var)
+                        scores_retry = guard_fn(q, passages_retry, draft_retry)
+
+                        if scores_retry["p_context_sufficient"] < thresholds["context_sufficient_threshold"]:
+                            act = "refused_insufficient_context_after_retry"
+                            ans = STANDARD_REFUSAL_MESSAGE
+                        elif scores_retry["p_supported"] >= thresholds["deliver_threshold"]:
+                            act = "delivered_after_retry"
+                            ans = draft_retry
+                        else:
+                            act = "refused_unsupported_after_retry"
+                            ans = STANDARD_REFUSAL_MESSAGE
+
+                        result = {
+                            "answer": ans,
+                            "action": act,
+                            "scores": scores_retry,
+                            "passages": passages_retry,
+                            "time_taken": round(ret_time + gen_time + (time.perf_counter() - t_guard), 4)
+                        }
+                    else:
+                        result = {
+                            "answer": STANDARD_REFUSAL_MESSAGE,
+                            "action": "refused_unsupported",
+                            "scores": scores,
+                            "passages": passages,
+                            "time_taken": round(ret_time + gen_time + (time.perf_counter() - t_guard), 4)
+                        }
 
                 ans_text = result["answer"]
                 action = result["action"]
                 latency = result["time_taken"]
-                total_latencies.append(latency)
+                benchmark_records[run_key]["latencies"].append(latency)
 
                 is_refused = is_refusal_answer(action, ans_text)
-
                 is_wrong_delivered = False
                 is_correct_refused = False
 
                 if not is_ans:
                     if not is_refused:
                         is_wrong_delivered = True
-                        wrong_answers_delivered += 1
+                        benchmark_records[run_key]["wrong_answers_delivered"] += 1
                 else:
                     if is_refused:
                         is_correct_refused = True
-                        correct_answers_wrongly_refused += 1
+                        benchmark_records[run_key]["correct_answers_wrongly_refused"] += 1
                     else:
                         matches = is_answer_match(ans_text, gold_answers)
                         if not matches:
                             is_wrong_delivered = True
-                            wrong_answers_delivered += 1
+                            benchmark_records[run_key]["wrong_answers_delivered"] += 1
 
-                details.append({
+                benchmark_records[run_key]["details"].append({
                     "question_id": item["question_id"],
                     "question": q,
                     "is_answerable": is_ans,
@@ -285,35 +337,41 @@ def run_benchmark_on_held_out(held_out_items: List[Dict[str, Any]], thresholds: 
                     "time_taken": latency
                 })
 
-            n = len(held_out_items)
-            avg_lat = round(sum(total_latencies) / n, 4) if n > 0 else 0.0
+    n = len(held_out_items)
+    summary_rows = []
+    final_output = {}
 
-            benchmark_records[run_key] = {
-                "config": cfg["name"],
-                "prompt_variant": p_var,
-                "total_queries": n,
-                "wrong_answers_delivered": wrong_answers_delivered,
-                "wrong_answers_delivered_pct": round((wrong_answers_delivered / n) * 100, 2),
-                "correct_answers_wrongly_refused": correct_answers_wrongly_refused,
-                "correct_answers_wrongly_refused_pct": round((correct_answers_wrongly_refused / n) * 100, 2),
-                "avg_latency_sec": avg_lat,
-                "details": details
-            }
+    for run_key, val in benchmark_records.items():
+        w_del = val["wrong_answers_delivered"]
+        c_ref = val["correct_answers_wrongly_refused"]
+        avg_lat = round(sum(val["latencies"]) / len(val["latencies"]), 4) if val["latencies"] else 0.0
 
-            summary_rows.append({
-                "run_key": run_key,
-                "config": cfg["name"],
-                "prompt_variant": p_var,
-                "total_queries": n,
-                "wrong_answers_delivered": wrong_answers_delivered,
-                "wrong_answers_delivered_pct": round((wrong_answers_delivered / n) * 100, 2),
-                "correct_answers_wrongly_refused": correct_answers_wrongly_refused,
-                "correct_answers_wrongly_refused_pct": round((correct_answers_wrongly_refused / n) * 100, 2),
-                "avg_latency_sec": avg_lat
-            })
+        final_output[run_key] = {
+            "config": val["config"],
+            "prompt_variant": val["prompt_variant"],
+            "total_queries": n,
+            "wrong_answers_delivered": w_del,
+            "wrong_answers_delivered_pct": round((w_del / n) * 100, 2),
+            "correct_answers_wrongly_refused": c_ref,
+            "correct_answers_wrongly_refused_pct": round((c_ref / n) * 100, 2),
+            "avg_latency_sec": avg_lat,
+            "details": val["details"]
+        }
+
+        summary_rows.append({
+            "run_key": run_key,
+            "config": val["config"],
+            "prompt_variant": val["prompt_variant"],
+            "total_queries": n,
+            "wrong_answers_delivered": w_del,
+            "wrong_answers_delivered_pct": round((w_del / n) * 100, 2),
+            "correct_answers_wrongly_refused": c_ref,
+            "correct_answers_wrongly_refused_pct": round((c_ref / n) * 100, 2),
+            "avg_latency_sec": avg_lat
+        })
 
     with open("eval/benchmark_results.json", "w", encoding="utf-8") as f:
-        json.dump(benchmark_records, f, indent=2)
+        json.dump(final_output, f, indent=2)
 
     with open("eval/benchmark_summary.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
