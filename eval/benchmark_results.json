@@ -1,0 +1,84 @@
+{
+  "no_guard_plain": {
+    "config": "no_guard",
+    "prompt_variant": "plain",
+    "total_queries": 20,
+    "wrong_answers_delivered": 11,
+    "wrong_answers_delivered_pct": 55.0,
+    "correct_answers_wrongly_refused": 0,
+    "correct_answers_wrongly_refused_pct": 0.0,
+    "avg_latency_sec": 2.08,
+    "details": [
+      {
+        "question_id": "5733be284776f41900661182",
+        "question": "What is France a region of?",
+        "is_answerable": false,
+        "gold_answers": [],
+        "delivered_answer": "France is a region of Western Europe.",
+        "action": "baseline_delivered",
+        "is_refused": false,
+        "is_wrong_delivered": true,
+        "is_correct_refused": false,
+        "scores": null,
+        "time_taken": 2.01
+      },
+      {
+        "question_id": "5733a6424776f41900660f51",
+        "question": "Who did King Charles III swear fealty to?",
+        "is_answerable": false,
+        "gold_answers": [],
+        "delivered_answer": "King Charles III swore fealty to Rollo.",
+        "action": "baseline_delivered",
+        "is_refused": false,
+        "is_wrong_delivered": true,
+        "is_correct_refused": false,
+        "scores": null,
+        "time_taken": 2.12
+      }
+    ]
+  },
+  "laya_guard_plain": {
+    "config": "laya_guard",
+    "prompt_variant": "plain",
+    "total_queries": 20,
+    "wrong_answers_delivered": 2,
+    "wrong_answers_delivered_pct": 10.0,
+    "correct_answers_wrongly_refused": 1,
+    "correct_answers_wrongly_refused_pct": 5.0,
+    "avg_latency_sec": 14.65,
+    "details": [
+      {
+        "question_id": "5733a6424776f41900660f51",
+        "question": "Who did King Charles III swear fealty to?",
+        "is_answerable": false,
+        "gold_answers": [],
+        "delivered_answer": "I'm sorry, but the provided context does not contain enough information to answer this question.",
+        "action": "refused_insufficient_context",
+        "is_refused": true,
+        "is_wrong_delivered": false,
+        "is_correct_refused": false,
+        "scores": {
+          "p_supported": 0.0188,
+          "p_context_sufficient": 0.0037
+        },
+        "time_taken": 14.2
+      },
+      {
+        "question_id": "5733a6424776f41900660f59",
+        "question": "What religion were the Normans?",
+        "is_answerable": true,
+        "gold_answers": ["Christian", "Catholic orthodoxy"],
+        "delivered_answer": "I'm sorry, but the provided context does not contain enough information to answer this question.",
+        "action": "refused_unsupported",
+        "is_refused": true,
+        "is_wrong_delivered": false,
+        "is_correct_refused": true,
+        "scores": {
+          "p_supported": 0.2157,
+          "p_context_sufficient": 0.3205
+        },
+        "time_taken": 14.5
+      }
+    ]
+  }
+}

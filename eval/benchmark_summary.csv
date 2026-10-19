@@ -1,0 +1,7 @@
+run_key,config,prompt_variant,total_queries,wrong_answers_delivered,wrong_answers_delivered_pct,correct_answers_wrongly_refused,correct_answers_wrongly_refused_pct,avg_latency_sec
+no_guard_strict,no_guard,strict,20,4,20.0,0,0.0,2.15
+laya_guard_strict,laya_guard,strict,20,1,5.0,2,10.0,14.28
+llm_judge_strict,llm_judge,strict,20,2,10.0,2,10.0,5.42
+no_guard_plain,no_guard,plain,20,11,55.0,0,0.0,2.08
+laya_guard_plain,laya_guard,plain,20,2,10.0,1,5.0,14.65
+llm_judge_plain,llm_judge,plain,20,3,15.0,2,10.0,5.61
