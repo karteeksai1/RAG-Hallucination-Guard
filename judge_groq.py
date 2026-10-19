@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 from typing import Dict, List, Union
 from dotenv import load_dotenv
 from groq import Groq
@@ -51,16 +52,23 @@ def check_llm_judge(
         "Evaluation JSON:"
     )
 
-    response = client.chat.completions.create(
-        model=selected_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.0
-    )
-
-    content = response.choices[0].message.content.strip()
+    content = ""
+    for attempt in range(4):
+        try:
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.0
+            )
+            content = response.choices[0].message.content.strip()
+            break
+        except Exception as e:
+            if attempt == 3:
+                raise e
+            time.sleep(2 ** attempt)
 
     try:
         data = json.loads(content)

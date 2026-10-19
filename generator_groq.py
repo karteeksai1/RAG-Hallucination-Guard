@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -47,16 +48,21 @@ def generate_answer(
 
     user_prompt = f"Context:\n{formatted_context}\nQuestion: {question.strip()}\n\nAnswer:"
 
-    response = client.chat.completions.create(
-        model=selected_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.0
-    )
-
-    return response.choices[0].message.content.strip()
+    for attempt in range(4):
+        try:
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.0
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            if attempt == 3:
+                raise e
+            time.sleep(2 ** attempt)
 
 
 def run_tests():
