@@ -42,7 +42,7 @@ def check_llm_judge(
         "1. 'supported': true if all statements in the answer are supported by the context, false otherwise.\n"
         "2. 'sufficient': true if the context contains enough information to answer the question, false otherwise.\n\n"
         "Return ONLY a JSON object with this exact structure:\n"
-        '{"supported": true, "sufficient": true}'
+        '{"supported": true, "sufficient": false}'
     )
 
     user_prompt = (
